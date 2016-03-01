@@ -1,7 +1,7 @@
 # @OpService ops
 # @DisplayService displays
 # @ImagePlus imp
-# @Double(label="Approximate length of particles [micron]", value=50.0) lengthOfParticles
+# @Double(label="Approximate length of particles [units]", value=50.0) lengthOfParticles
 # @Double(label="Minimum coherency [%]", value=20.0) coherencyThreshold
 # @OUTPUT String(label="Area Fraction of oriented particles") areaFraction
 
@@ -26,6 +26,8 @@ from net.imagej.ops import Ops;
 ### Compute size of tensor from calibration and provided parameter ###
 cal = imp.getCalibration(); 
 x = cal.pixelWidth; # x contains the pixel width in units 
+if IJ.debugMode:
+  print("Calibration pixel width: "+str(x));
 
 # Assume that scaling in x and y direction is the same
 tensorSpan = math.floor((lengthOfParticles/x)/2);
