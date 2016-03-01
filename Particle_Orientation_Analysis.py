@@ -14,8 +14,9 @@
 # @date 03/01/2016
 
 import math;
-from ij import IJ, WindowManager;
+from ij import IJ, WindowManager, ImagePlus;
 from ij.plugin.filter import Analyzer;
+from ij.plugin import ImageCalculator;
 from ij.measure import Measurements, ResultsTable;
 from net.imglib2.img.display.imagej import ImageJFunctions;
 from net.imglib2.type.logic import BitType;
@@ -42,25 +43,48 @@ IJ.run(imp, "OrientationJ Distribution", "log=0.0 tensor="+ str(tensorSpan) + " 
 IJ.run(imp, "OrientationJ Analysis", "log=0.0 tensor="+ str(tensorSpan) + " gradient=1 energy=on hue=Orientation sat=Coherency bri=Original-Image ");
 
 ### Close unused windows ###
-for imp in map(WindowManager.getImage, WindowManager.getIDList()):
-  title = imp.getTitle();
+for impOpened in map(WindowManager.getImage, WindowManager.getIDList()):
+  title = impOpened.getTitle();
   if title.startswith("Orientation"):
   	# Close "Orientation"
-	imp.close();
+	impOpened.close();
   
   if title.startswith("S-Mask"):
   	# Keep "S-Mask"
-	maskImp = imp;
+	maskImp = impOpened;
   
   if title.startswith("S-Orientation"):
   	# Close "S-Orientation"
-	imp.close();
+	impOpened.close();
   
   if title.startswith("Energy"):
   	# Keep "Energy"
-	energyImp = imp;
+	energyImp = impOpened;
 
 ### Remove holes from image ###
+# Selection mask from overlay
+overlay = imp.getOverlay();
+
+img = ImageJFunctions.wrap(imp);
+emptyImg = ops.create().img(img);
+emptyImp = ImageJFunctions.wrap(emptyImg, "mask");
+
+for roi in overlay.toArray():
+  imp.setRoi(roi);
+  IJ.run(imp, "Create Mask", "");
+  manualMaskImp = IJ.getImage();
+  ic = ImageCalculator();
+  ic.run("OR", emptyImp, manualMaskImp);
+
+manualMask = ImageJFunctions.wrap(manualMaskImp);
+
+if IJ.debugMode:
+  displays.createDisplay("manual-mask", manualMask);
+
+# Invert
+invertedEmptyImg = ops.create().img(manualMask, BitType());
+ops.image().invert(invertedEmptyImg, manualMask);
+
 # Threshold energyImp
 wrappedImg = ImageJFunctions.wrap(energyImp);
 output = ops.create().img(wrappedImg, BitType());
@@ -86,18 +110,22 @@ newMask = ops.create().img(wrappedImg, BitType());
 newMaskCursor = newMask.cursor();
 outputCursor = invertedOutput.cursor();
 maskCursor = bitMask.cursor();
+manualMaskCursor = invertedEmptyImg.cursor();
 
 while (newMaskCursor.hasNext()):
   outputPixel = outputCursor.next().get();
   maskPixel = maskCursor.next().get();
-  newMaskCursor.next().set(BitType(outputPixel and maskPixel));
+  manualMaskPixel = manualMaskCursor.next().get();
+  newMaskCursor.next().set(BitType(outputPixel and maskPixel and manualMaskPixel));
 
 # TODO map with and op
 #andOp = ops.op(Ops.Logic.And, BitType(), BitType());
 #ops.map(newMask, ImageJFunctions.wrap(maskImp), output, andOp);
-#displays.createDisplay("combined_output", ImgPlus(newMask));
 
-# Compute area from coherency mask
+if IJ.debugMode:
+  displays.createDisplay("combined_output", ImgPlus(newMask));
+
+# Compute area from combined mask
 newMaskImp = ImageJFunctions.wrapUnsignedByte(newMask, "New mask");
 newMaskImp.getProcessor().setThreshold(1.0, 1.5, False); # [0.5, 1.0] does not work due to rounding problems
 rt = ResultsTable();
