@@ -4,14 +4,15 @@
 
 # How to use the macro
 1. Open image you want to analyze
-2. Run *Plugins > Particle Orientation Analysis*
-3. Evaluate output
+2. Convert it to an 8-bit grey scale (*Image > Type > 8-bit*)
+3. Run *Plugins > Particle Orientation Analysis*
+4. Evaluate output
     * Area fraction of oriented particles in %
-    * Histogram of orientations in the areas with a high coherency (**currently, this does not discard holes, i.e. regions of the image with a high energy**)
+    * Histogram of orientations in the areas with a high coherency (**currently, this does not discard holes, i.e. regions of the image with a high energy value**)
 
 # How to set the scale of an image
 1. Open EM image
-2. Make a line selection on the provided scale bar (hold down shift after first to click to create horizontal line)
+2. Make a line selection on the provided scale bar (hold down shift for horizontal line)
 3. Open *Analyse > Set Scale*
 4. Provide *Known distance* from scale bar
 5. Set *Unit of length* to "micron"
