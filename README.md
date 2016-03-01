@@ -9,6 +9,21 @@
     * Area fraction of oriented particles in %
     * Histogram of orientations in the areas with a high coherency (**currently, this does not discard holes, i.e. regions of the image with a high energy**)
 
+# How to set the scale of an image
+1. Open EM image
+2. Make a line selection on the provided scale bar (hold down shift after first to click to create horizontal line)
+3. Open *Analyse > Set Scale*
+4. Provide *Known distance* from scale bar
+5. Set *Unit of length* to "micron"
+
+or
+
+1. Open EM image
+2. Open *Analyse > Set Scale*
+3. Set *Distance in pixels* to 1
+3. Provide *Known distance* from "Pixel Size" property in the EM image (in microns)
+4. Set *Unit of length* to "micron"
+
 # Miscellaneous
 * **radial_integration.py** is not properly working at the moment
 * **radial_integration.ijm** performs an FFT on the input image, converts the FFT to polar coordinates (requires plugin [Polar Transformer](http://rsb.info.nih.gov/ij/plugins/polar-transformer.html)), and radially integrates along the distance to center axis
