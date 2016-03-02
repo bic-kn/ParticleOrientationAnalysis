@@ -12,7 +12,7 @@
 # a histogram of orientations within the coherent regions is kept.
 #
 # @author Stefan Helfrich (Bioimaging Center, University of Konstanz)
-# @date 03/01/2016
+# @date 03/02/2016
 
 import math;
 from ij import IJ, WindowManager, ImagePlus;
@@ -28,18 +28,21 @@ from net.imagej.ops import Ops;
 def maskFromOverlay(imp):
   ''' TODO Documentation '''
   overlay = imp.getOverlay();
-
+  
   img = ImageJFunctions.wrap(imp);
   emptyImg = ops.create().img(img);
+  if overlay is None:
+  	return emptyImg;
+  
   emptyImp = ImageJFunctions.wrap(emptyImg, "mask");
-
+  
   for roi in overlay.toArray():
     imp.setRoi(roi);
     IJ.run(imp, "Create Mask", "");
     manualMaskImp = IJ.getImage();
     ic = ImageCalculator();
     ic.run("OR", emptyImp, manualMaskImp);
-
+  
   manualMask = ImageJFunctions.wrap(manualMaskImp);
   manualMaskImp.close();
   #imp.setRoi(None);
