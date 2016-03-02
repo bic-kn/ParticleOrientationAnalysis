@@ -94,47 +94,48 @@ for impOpened in map(WindowManager.getImage, WindowManager.getIDList()):
 manualMask = maskFromOverlay(imp);
 
 # Invert
-invertedEmptyImg = invertImg(manualMask);
+invertedManualMask = invertImg(manualMask);
 
 if IJ.debugMode:
-  displays.createDisplay("manual-mask", ImgPlus(invertedEmptyImg));
+  displays.createDisplay("manual-mask", ImgPlus(invertedManualMask));
 
 # Threshold energyImp
 wrappedImg = ImageJFunctions.wrap(energyImp);
-output = ops.create().img(wrappedImg, BitType());
-ops.threshold().apply(output, wrappedImg, FloatType(0.20));
+energyMask = ops.create().img(wrappedImg, BitType());
+ops.threshold().apply(energyMask, wrappedImg, FloatType(0.20));
 
 # Invert, b/c we want to have lower energy regions
 #invertedOutput = invertImg(output);
 
 if IJ.debugMode:
-  displays.createDisplay("energy-thresholded", ImgPlus(output));
+  displays.createDisplay("energy-mask", ImgPlus(energyMask));
 
 # Convert mask to binary image
-# FIXME Does this really work?
-wrappedMask = ImageJFunctions.wrap(maskImp);
-bitMask = ops.create().img(wrappedImg, BitType());
-ops.convert().bit(bitMask, wrappedMask);
+wrappedManualMask = ImageJFunctions.wrap(maskImp);
+coherencyMask = ops.create().img(wrappedImg, BitType());
+ops.convert().bit(coherencyMask, wrappedManualMask);
 
 if IJ.debugMode:
-  displays.createDisplay("coherency-thresholded", ImgPlus(bitMask));
+  displays.createDisplay("coherency-mask", ImgPlus(coherencyMask));
 
 # AND with maskImp
 newMask = ops.create().img(wrappedImg, BitType());
 newMaskCursor = newMask.cursor();
-outputCursor = output.cursor();
-maskCursor = bitMask.cursor();
-manualMaskCursor = invertedEmptyImg.cursor();
 
 overallSelectionMask = ops.create().img(wrappedImg, BitType());
 overallSelectionMaskCursor = overallSelectionMask.cursor();
 
+energyMaskCursor = energyMask.cursor();
+coherencyMaskCursor = coherencyMask.cursor();
+manualMaskCursor = invertedManualMask.cursor();
+
 while (newMaskCursor.hasNext()):
-  outputPixel = outputCursor.next().get();
-  maskPixel = maskCursor.next().get();
+  energyMaskPixel = energyMaskCursor.next().get();
+  coherencyMaskPixel = coherencyMaskCursor.next().get();
   manualMaskPixel = manualMaskCursor.next().get();
-  newMaskCursor.next().set(BitType(outputPixel and maskPixel and manualMaskPixel));
-  overallSelectionMaskCursor.next().set(BitType(outputPixel and manualMaskPixel));
+  
+  newMaskCursor.next().set(BitType(energyMaskPixel and coherencyMaskPixel and manualMaskPixel));
+  overallSelectionMaskCursor.next().set(BitType(energyMaskPixel and manualMaskPixel));
 
 # TODO map with and op
 #andOp = ops.op(Ops.Logic.And, BitType(), BitType());
@@ -144,14 +145,15 @@ if IJ.debugMode:
   displays.createDisplay("oriented-mask", ImgPlus(newMask));
   displays.createDisplay("overall-mask", ImgPlus(overallSelectionMask));
 
-# Compute area from combined mask
+### Compute area fraction of oriented regions ###
+# Compute area of oriented mask
 newMaskImp = ImageJFunctions.wrapUnsignedByte(newMask, "New mask");
 newMaskImp.getProcessor().setThreshold(1.0, 1.5, False); # [0.5, 1.0] does not work due to rounding problems
 rt = ResultsTable();
 analyzer = Analyzer(newMaskImp, Measurements.AREA | Measurements.LIMIT, rt);
 analyzer.measure();
 
-# Compute area from overall selection mask 
+# Compute area of overall selection mask 
 energyMaskImp = ImageJFunctions.wrapUnsignedByte(overallSelectionMask, "Energy mask");
 energyMaskImp.getProcessor().setThreshold(1.0, 1.5, False); # [0.5, 1.0] does not work due to rounding problems
 rtEnergy = ResultsTable();
