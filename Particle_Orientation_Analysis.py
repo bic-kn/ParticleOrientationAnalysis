@@ -2,13 +2,14 @@
 # @DisplayService displays
 # @ImagePlus imp
 # @Double(label="Approximate length of particles [units]", value=50.0) lengthOfParticles
-# @Double(label="Minimum coherency [%]", value=20.0) coherencyThreshold
+# @Double(label="Minimum coherency [%]", value=10.0) coherencyThreshold
 # @Boolean(label="Use hole detection (based on energy)") useEnergy
 # @OUTPUT String(label="Area Fraction of oriented particles") areaFraction
 
 # TODO Use initializer() to get scale units for lengthOfParticles
 # TODO Implement maximum energy as input parameter
 # TODO Use callback() to set the maximum energy only if hole detection is enabled
+# TODO Properly define constants
 
 # This macro executes the OrientationJ plugin with the provided input parameters.
 # Subsequently, a mask is constructed by thresholding of the coherency image.
@@ -71,12 +72,18 @@ tensorSpan = math.floor((lengthOfParticles/x)/2);
 if IJ.debugMode:
   print("Tensor span: "+str(tensorSpan)+"px");
 
+### Compute thresholded Shape Index Map ###
+IJ.run(imp, "Shape Index Map", "gaussian_blur_radius=2");
+simImp = IJ.getImage();
+simImp.getProcessor().setThreshold(0.0, 1.0, False);
+IJ.run(simImp, "Convert to Mask", "");
+
 ### Execute OrientationJ ###
-IJ.run(imp, "OrientationJ Distribution", "log=0.0 tensor="+ str(tensorSpan) + " gradient=1 " +
+IJ.run(simImp, "OrientationJ Distribution", "log=0.0 tensor="+ str(tensorSpan) + " gradient=1 " +
 	"min-coherency="+ str(coherencyThreshold) +" min-energy=0.0 "+("energy=on " if useEnergy else " ")+"harris-index=on s-mask=on " +
 	"s-orientation=on s-distribution=on hue=Orientation sat=Coherency bri=Original-Image ");
 
-IJ.run(imp, "OrientationJ Analysis", "log=0.0 tensor="+ str(tensorSpan) + " gradient=1 energy=on hue=Orientation sat=Coherency bri=Original-Image ");
+IJ.run(simImp, "OrientationJ Analysis", "log=0.0 tensor="+ str(tensorSpan) + " gradient=1 energy=on hue=Orientation sat=Coherency bri=Original-Image ");
 
 ### Close unused windows and keep others for further processing ###
 for impOpened in map(WindowManager.getImage, WindowManager.getIDList()):
