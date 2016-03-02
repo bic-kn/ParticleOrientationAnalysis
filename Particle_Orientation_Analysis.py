@@ -3,6 +3,7 @@
 # @ImagePlus imp
 # @Double(label="Approximate length of particles [units]", value=50.0) lengthOfParticles
 # @Double(label="Minimum coherency [%]", value=20.0) coherencyThreshold
+# @Boolean(label="Use hole detection (based on energy)") useEnergy
 # @OUTPUT String(label="Area Fraction of oriented particles") areaFraction
 
 # This macro executes the OrientationJ plugin with the provided input parameters.
@@ -65,7 +66,7 @@ if IJ.debugMode:
 
 ### Execute OrientationJ ###
 IJ.run(imp, "OrientationJ Distribution", "log=0.0 tensor="+ str(tensorSpan) + " gradient=1 " +
-	"min-coherency="+ str(coherencyThreshold) +" min-energy=0.0 energy=on harris-index=on s-mask=on " +
+	"min-coherency="+ str(coherencyThreshold) +" min-energy=0.0 "+("energy=on " if useEnergy else " ")+"harris-index=on s-mask=on " +
 	"s-orientation=on s-distribution=on hue=Orientation sat=Coherency bri=Original-Image ");
 
 IJ.run(imp, "OrientationJ Analysis", "log=0.0 tensor="+ str(tensorSpan) + " gradient=1 energy=on hue=Orientation sat=Coherency bri=Original-Image ");
@@ -101,14 +102,15 @@ if IJ.debugMode:
 
 # Threshold energyImp
 wrappedImg = ImageJFunctions.wrap(energyImp);
-energyMask = ops.create().img(wrappedImg, BitType());
-ops.threshold().apply(energyMask, wrappedImg, FloatType(0.20));
-
-# Invert, b/c we want to have lower energy regions
-#invertedOutput = invertImg(output);
-
-if IJ.debugMode:
-  displays.createDisplay("energy-mask", ImgPlus(energyMask));
+if useEnergy:
+  energyMask = ops.create().img(wrappedImg, BitType());
+  ops.threshold().apply(energyMask, wrappedImg, FloatType(0.20));
+  
+  # Invert, b/c we want to have lower energy regions
+  #invertedOutput = invertImg(output);
+  
+  if IJ.debugMode:
+    displays.createDisplay("energy-mask", ImgPlus(energyMask));
 
 # Convert mask to binary image
 wrappedManualMask = ImageJFunctions.wrap(maskImp);
@@ -125,12 +127,16 @@ newMaskCursor = newMask.cursor();
 overallSelectionMask = ops.create().img(wrappedImg, BitType());
 overallSelectionMaskCursor = overallSelectionMask.cursor();
 
-energyMaskCursor = energyMask.cursor();
+if useEnergy:
+  energyMaskCursor = energyMask.cursor();
 coherencyMaskCursor = coherencyMask.cursor();
 manualMaskCursor = invertedManualMask.cursor();
 
 while (newMaskCursor.hasNext()):
-  energyMaskPixel = energyMaskCursor.next().get();
+  if useEnergy:
+    energyMaskPixel = energyMaskCursor.next().get();
+  else:
+    energyMaskPixel = BitType(True);
   coherencyMaskPixel = coherencyMaskCursor.next().get();
   manualMaskPixel = manualMaskCursor.next().get();
   
@@ -173,5 +179,5 @@ areaFraction = str(areaCoherency/areaEnergy*100.0)+"%";
 if not IJ.debugMode:
   maskImp.close();
 # Close "Energy"
-if not IJ.debugMode:
+if not IJ.debugMode and useEnergy:
   energyImp.close();
