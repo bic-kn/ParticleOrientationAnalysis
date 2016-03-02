@@ -6,6 +6,10 @@
 # @Boolean(label="Use hole detection (based on energy)") useEnergy
 # @OUTPUT String(label="Area Fraction of oriented particles") areaFraction
 
+# TODO Use initializer() to get scale units for lengthOfParticles
+# TODO Implement maximum energy as input parameter
+# TODO Use callback() to set the maximum energy only if hole detection is enabled
+
 # This macro executes the OrientationJ plugin with the provided input parameters.
 # Subsequently, a mask is constructed by thresholding of the coherency image.
 # From this mask the area fraction of coherent regions is computed. Additionally,
