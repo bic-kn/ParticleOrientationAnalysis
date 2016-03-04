@@ -136,30 +136,16 @@ if IJ.debugMode:
 
 # AND with maskImp
 newMask = ops.create().img(wrappedImg, BitType());
-newMaskCursor = newMask.cursor();
-
 overallSelectionMask = ops.create().img(wrappedImg, BitType());
-overallSelectionMaskCursor = overallSelectionMask.cursor();
 
+# Map with and Ops.Math.And
+andOp = ops.op(Ops.Math.And, BitType(), BitType(), BitType());
 if useEnergy:
-  energyMaskCursor = energyMask.cursor();
-coherencyMaskCursor = coherencyMask.cursor();
-manualMaskCursor = invertedManualMask.cursor();
+  overallSelectionMask = ops.map(overallSelectionMask, energyMask, invertedManualMask, andOp);
+else:
+  overallSelectionMask = manualMask.copy();
 
-while (newMaskCursor.hasNext()):
-  if useEnergy:
-    energyMaskPixel = energyMaskCursor.next().get();
-  else:
-    energyMaskPixel = BitType(True);
-  coherencyMaskPixel = coherencyMaskCursor.next().get();
-  manualMaskPixel = manualMaskCursor.next().get();
-  
-  newMaskCursor.next().set(BitType(energyMaskPixel and coherencyMaskPixel and manualMaskPixel));
-  overallSelectionMaskCursor.next().set(BitType(energyMaskPixel and manualMaskPixel));
-
-# TODO map with and op
-#andOp = ops.op(Ops.Logic.And, BitType(), BitType());
-#ops.map(newMask, ImageJFunctions.wrap(maskImp), output, andOp);
+newMask = ops.map(newMask, overallSelectionMask, coherencyMask, andOp);
 
 if IJ.debugMode:
   displays.createDisplay("oriented-mask", ImgPlus(newMask));
