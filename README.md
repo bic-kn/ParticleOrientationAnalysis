@@ -1,8 +1,13 @@
-# How to install the macro
+Particle Orientation Analysis Script
+====================================
+
+The Particle Orientation Analysis script computes an estimate of the degree of orientation in a particle mixture. This quantity is computed as the area fraction that is covered by oriented domains in EM images using [OrientationJ](http://bigwww.epfl.ch/demo/orientation/).
+
+# How to install the script
 1. Install [OrientationJ](http://bigwww.epfl.ch/demo/orientation/) according to the provided instructions
 2. Drop *Particle\_Orientation\_Analysis.py* into the *plugins/* folder of your Fiji installation
 
-# How to use the macro
+# How to use the script
 1. Open image you want to analyze
 2. Convert it to 8-bit grey scale (*Image > Type > 8-bit*)
 3. Set ROIs that you want to discard in the computations
