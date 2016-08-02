@@ -30,7 +30,5 @@ or
 4. Set *Unit of length*
 
 # Miscellaneous
-* **radial_integration.py** is not properly working at the moment
-* **radial_integration.ijm** performs an FFT on the input image, converts the FFT to polar coordinates (requires plugin [Polar Transformer](http://rsb.info.nih.gov/ij/plugins/polar-transformer.html)), and radially integrates along the distance to center axis
 * **map0to180.lut** maps values near 180 and 0 degrees to the same grey value. Apply to an open image via *Image > Color > Edit LUT... > Open...*
 * **TestWindowSizes.ijm** executes OrientationJ with various window sizes (minor changes compared to the one [provided](http://bigwww.epfl.ch/demo/orientation/tree-orientation.txt) by the developers)
