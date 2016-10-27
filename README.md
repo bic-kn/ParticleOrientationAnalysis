@@ -37,3 +37,7 @@ or
 # Miscellaneous
 * **map0to180.lut** maps values near 180 and 0 degrees to the same grey value. Apply to an open image via *Image > Color > Edit LUT... > Open...*
 * **TestWindowSizes.ijm** executes OrientationJ with various window sizes (minor changes compared to the one [provided](http://bigwww.epfl.ch/demo/orientation/tree-orientation.txt) by the developers)
+
+# Citation
+
+Gerigk, M., Bahner, J., Kollek, T., Helfrich, S., Rosenberg, R., Cölfen, H. and Polarz, S. (2016), Order and Defects in Ceramic Semiconductor Nanoparticle Superstructures as a Function of Polydispersity and Aspect Ratio. Part. Part. Syst. Charact.. [doi:10.1002/ppsc.201600215](http://onlinelibrary.wiley.com/doi/10.1002/ppsc.201600215/full)
